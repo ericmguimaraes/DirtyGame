@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1441038798 source:c:\users\ericm\google drive\oswego\2015.2\system programing\workspace\dirtygameproject\mainfile.c
+	<stdio.h>
+	<stdlib.h>
+
+1441051591 source:c:\users\ericm\google drive\oswego\2015.2\system programing\workspace\dirtygame\dirtygameproject\dirtygame.c
+	<stdio.h>
+	<stdlib.h>
+
