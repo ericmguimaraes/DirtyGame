@@ -1,64 +1,81 @@
-
 #include<stdio.h>
 #include<stdlib.h>
 
-int respect = 40;
+typedef struct {
+    int id;
+    int type;
+	int room;
+	int deleted;
+} creature_type;
 
-int *pointer_1, *pointer_2, *pointer_3;
-char *getCommand(char *action);
-int getPlayer(char *action, int *pointer_creatures);
-int getPlayerRoom(int *pointer_creatures, int *pointer_rooms);
-void look(int *room, int *player);
-void clean(int *room, int *player);
-void dirty(int *room, int *player);
-void move(char *direction, int *room, int *player);
+typedef struct {
+	int id;
+    int state;
+    int north;
+    int south;
+    int east;
+    int west;
+    creature_type* creatures[10];
+} room_type;
 
-int main()
-{
-    enum GameState {
+enum GameState {
         startState,
         mainState,
         gameOverState,
         done
     };
 
-    enum Dirtyness {
-        clean = 0,
-        halfdirty = 1,
-        dirty = 2
-    };
+enum Dirtyness {
+	clean_state = 0,
+	halfdirty_state = 1,
+	dirty_state = 2
+};
 
+char * getCommand(char *action);
+creature_type * getPlayer(char *action);
+room_type * getPlayerRoom(creature_type *creature);
+void look(room_type *room, creature_type *player);
+void clean(room_type *room, creature_type *player);
+void dirty(room_type *room, creature_type *player);
+void move(char *direction, room_type *room, creature_type *player);
+void add_creature(creature_type *creature, room_type *room);
+
+int respect = 40;
+room_type *pointer_rooms;
+creature_type *pointer_creatures;
+
+int main()
+{
     enum GameState currentState = startState;
 
-    int number_rooms, number_creatures;
-
-    int *pointer_rooms, *pointer_creatures;
+	int number_rooms, number_creatures;
 
     while(currentState != done){
         switch(currentState){
             case startState:
                 scanf("%d",&number_rooms);
-                pointer_rooms = (int *)malloc(sizeof(int)*number_rooms*6);// 0 state, north, south, east, west, crowd
+                pointer_rooms = (room_type *)malloc(sizeof(room_type)*number_rooms);
                 //read state north south east west for each room
                 int i;
                 for(i=0; i < number_rooms; i++) {
-                        pointer_rooms[i*6 +0] = 0;
-                        scanf("%d %d %d %d %d", &pointer_rooms[i*6 +0], &pointer_rooms[i*6 +1], &pointer_rooms[i*6 +2], &pointer_rooms[i*6 +3], &pointer_rooms[i*6 +4]);
-                        pointer_rooms[i*6 +5] = 0;
+						pointer_rooms[i].id = i;
+                        scanf("%d %d %d %d %d", &pointer_rooms[i].state, &pointer_rooms[i].north, &pointer_rooms[i].south, &pointer_rooms[i].east, &pointer_rooms[i].west);
                 }
                 scanf("%d",&number_creatures);
                 //read creature type and location
-               pointer_creatures = (int *)malloc(sizeof(int)*number_creatures*2); //type, room
-               //creatureType is 0 for the PC, 1 for an animal, 2 for an NPC
+				pointer_creatures = (creature_type *)malloc(sizeof(creature_type)*number_creatures);
+				//creatureType is 0 for the PC, 1 for an animal, 2 for an NPC
                 for (i = 0; i < number_creatures; i++){
-                    scanf("%d %d", &pointer_creatures[i*2+0], &pointer_creatures[i*2 +1]);
-                    pointer_rooms[pointer_creatures[i*2+1]*6+5] = pointer_rooms[pointer_creatures[i*2+1]*6+5] + 1;
+					pointer_creatures[i].id = i;
+					pointer_creatures[i].deleted = 0;
+                    scanf("%d %d", &pointer_creatures[i].type, &pointer_creatures[i].room);
+					add_creature(&pointer_creatures[i], &pointer_rooms[pointer_creatures[i].room]);
                 }
                 currentState = mainState;
                 break;
             case mainState:
                 printf("The Game Started");
-                char action[10];
+                char action[5];
                 scanf("%s", &action[0]);
                 char *command;
                 command = (char *)getCommand(action);
