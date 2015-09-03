@@ -49,6 +49,7 @@ void check_creatures_reaction(int action, room_type *room, creature_type *player
 int respect = 40;
 room_type *pointer_rooms;
 creature_type *pointer_creatures;
+creature_type *deleted_creature;
 
 int main()
 {
@@ -265,10 +266,14 @@ void look(room_type *room, creature_type *player){
 
 void initCreaturesInRooms(int number_rooms){
     int i, j;
+    deleted_creature = malloc(sizeof(creature_type));
+    deleted_creature->id = -1;
+    deleted_creature->room = -1;
+    deleted_creature->type = -1;
+    deleted_creature->deleted = 1;
     for(i=0;i<number_rooms;i++){
         for(j=0;j<10;j++){
-            pointer_rooms[i].creatures[j] = malloc(sizeof(creature_type));
-            pointer_rooms[i].creatures[j]->deleted = 1;
+            pointer_rooms[i].creatures[j] = deleted_creature;
         }
     }
 }
@@ -290,8 +295,7 @@ void remove_creature(creature_type *creature, room_type *room){
     int i;
     for(i=0; i < 10; i++){
         if(room->creatures[i]==creature){
-           room->creatures[i] = malloc(sizeof(creature_type));
-           room->creatures[i]->deleted = 1;
+           room->creatures[i] = deleted_creature;
         }
     }
 };
@@ -322,23 +326,18 @@ void dirty(room_type *room, creature_type *player){
 
 int reaction(int action, room_type *room, creature_type *player){
     check_creatures_reaction(action, room, player);
-    //if from PC
 
-    //updaterespect
-    //else
-    //calculate extra points
-    //updaterespect
 }
 
 void check_creatures_reaction(int action, room_type *room, creature_type *player){
     int i;
     for(i=0; i < 10; i++){
-        if(!room->creatures[i]->deleted && room->creatures[i] != player){
+        if(!room->creatures[i]->deleted && room->creatures[i] != player && room->creatures[i]->type != 0){
             creature_react(calculate_creature_reaction(action, room->creatures[i]), room->creatures[i]);
         }
     }
     if(player->type!=0){
-        creature_react(3*calculate_creature_reaction(action, room->creatures[i]), room->creatures[i]);
+        creature_react(3 * calculate_creature_reaction(action, player), player);
     }
 }
 
@@ -358,7 +357,7 @@ void creature_react(int respect_change, creature_type *creature){
             printf("%d grumble",creature->id);
         }
     }
-    if(respect_change>1){
+    if(respect_change>1 || respect_change<-1){
         printf(" a lot");
     }
     printf(".");
