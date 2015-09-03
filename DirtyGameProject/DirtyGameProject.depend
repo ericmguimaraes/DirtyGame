@@ -3,7 +3,9 @@
 	<stdio.h>
 	<stdlib.h>
 
-1441170286 source:c:\users\ericm\google drive\oswego\2015.2\system programing\workspace\dirtygame\dirtygameproject\dirtygame.c
+1441245590 source:c:\users\ericm\google drive\oswego\2015.2\system programing\workspace\dirtygame\dirtygameproject\dirtygame.c
 	<stdio.h>
 	<stdlib.h>
+	<string.h>
+	<ctype.h>
 
