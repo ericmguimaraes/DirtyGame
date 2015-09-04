@@ -50,6 +50,10 @@ int respect = 40;
 room_type *pointer_rooms;
 creature_type *pointer_creatures;
 creature_type *deleted_creature;
+void move_sad_creatures(room_type *room);
+int creature_can_not_stay(int creature_type, int state);
+
+
 
 int main()
 {
@@ -326,6 +330,24 @@ void dirty(room_type *room, creature_type *player){
 
 int reaction(int action, room_type *room, creature_type *player){
     check_creatures_reaction(action, room, player);
+    move_sad_creatures(room);
+
+}
+
+void move_sad_creatures(room_type *room){
+    int i;
+    for(i=0; i < 10; i++){
+        if(!room->creatures[i]->deleted && room->creatures[i]->type != 0){
+            if(creature_can_not_stay(room->creatures[i]->type, room->state){
+                  if(!move_creature_from(room->creatures[i],room){
+                      creature_drill_hole(room->creatures[i],room);
+                  }
+             }
+        }
+    }
+}
+
+int creature_can_not_stay(int creature_type, int state){
 
 }
 
@@ -342,7 +364,7 @@ void check_creatures_reaction(int action, room_type *room, creature_type *player
 }
 
 void creature_react(int respect_change, creature_type *creature){
-    //npc “smile” and “grumble.” Animals can “growl” and “lickFace.”
+    //npc Â“smileÂ” and Â“grumble.Â” Animals can Â“growlÂ” and Â“lickFace.Â”
     respect=respect+respect_change;
     if(creature->type==1){
         if(respect_change>0){
@@ -383,6 +405,7 @@ int calculate_creature_reaction(int action, creature_type *creature){
 
 void creature_drill_hole(creature_type *creature, room_type *room){
     creature->deleted = 1;
+    //TODO add PC penalty
 }
 
 int move(room_type *origin_room, room_type *destination_room, creature_type *player){
