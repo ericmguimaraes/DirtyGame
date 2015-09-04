@@ -45,15 +45,13 @@ int reaction(int action, room_type *room, creature_type *player);
 int calculate_creature_reaction(int action, creature_type *creature);
 void creature_react(int respect_change, creature_type *creature);
 void check_creatures_reaction(int action, room_type *room, creature_type *player);
+void move_sad_creatures(room_type *room);
+int creature_can_not_stay(int creature_type, int state);
 
 int respect = 40;
 room_type *pointer_rooms;
 creature_type *pointer_creatures;
 creature_type *deleted_creature;
-void move_sad_creatures(room_type *room);
-int creature_can_not_stay(int creature_type, int state);
-
-
 
 int main()
 {
@@ -347,7 +345,14 @@ void move_sad_creatures(room_type *room){
     }
 }
 
-int creature_can_not_stay(int creature_type, int state){
+int creature_can_not_stay(int type, int state){
+    if((type == 1 && state == 2) || (type == 2 && state == 0)){ 
+        return 1;
+    }
+    return 0;
+}
+
+int move_creature_from(creature_type *creature,  room_type *room){
 
 }
 
