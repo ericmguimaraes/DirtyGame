@@ -64,21 +64,14 @@ int main()
     while(currentState != done){
         switch(currentState){
             case startState:
-                printf("\nFirst of all type the number of rooms, then type 5 integers to set the fields (dirt, north, south, east and west neighbor).\n");
-                printf("The dirty states are Clean: 0, Half Dirty: 1, Dirty: 2. Where the room does not have neighbor type '-1'.\n");
-                printf("Type the number of creatures, then type two integers to set the kind of creature and which room it is in.\n");
-                printf("Kind of creature PC: 0, Animal: 1, Human: 2.\n");
                 scanf("%d",&number_rooms);
-                printf("Number of Rooms (1 < number of rooms < 100)\n");
                 pointer_rooms = (room_type *)malloc(sizeof(room_type)*number_rooms);
                 //read state north south east west for each room
                 int i;
                 for(i=0; i < number_rooms; i++) {
-						pointer_rooms[i].id = i;
-						printf("Dirt State, North Neighbor, South Neighbor, East Neighbor, West Neighbor - Room[%d]\n", i);
+			pointer_rooms[i].id = i;
                         scanf("%d %d %d %d %d", &pointer_rooms[i].state, &pointer_rooms[i].north, &pointer_rooms[i].south, &pointer_rooms[i].east, &pointer_rooms[i].west);
                 }
-                printf("Number of Creatures (1 < number of creatures < 100)\n");
                 scanf("%d",&number_creatures);
                 //read creature type and location
 				pointer_creatures = (creature_type *)malloc(sizeof(creature_type)*number_creatures);
@@ -87,7 +80,6 @@ int main()
                 for (i = 0; i < number_creatures; i++){
 					pointer_creatures[i].id = i;
 					pointer_creatures[i].deleted = 0;
-                    printf("Type of Creature and Location - Creature[%d]\n", i);
                     scanf("%d %d", &pointer_creatures[i].type, &pointer_creatures[i].room);
 					add_creature(&pointer_creatures[i], &pointer_rooms[pointer_creatures[i].room]);
                 }
@@ -121,11 +113,11 @@ int main()
                 } else if (strcmp(command, "exit") == 0){
                     currentState=exitState;
                 } else if (strcmp(command, "unit-tests") == 0) {
-					//TODO unitTests();
-				} else if (strcmp(command, "help") == 0) {
-					help();
-				}
-				free(command);
+			//TODO unitTests();
+		} else if (strcmp(command, "help") == 0) {
+			help();
+		}
+		free(command);
                 if(respect<1 || respect>80)
                     currentState=gameOverState;
                 break;
