@@ -67,7 +67,7 @@ int main()
                 printf("\nFirst of all type the number of rooms, then type 5 integers to set the fields (dirt, north, south, east and west neighbor).\n");
                 printf("The dirty states are Clean: 0, Half Dirty: 1, Dirty: 2. Where the room does not have neighbor type '-1'.\n");
                 printf("Type the number of creatures, then type two integers to set the kind of creature and which room it is in.\n");
-                printf("Kind of creature PC: 0, Animal: 1, Human: 2.\n\n\n");
+                printf("Kind of creature PC: 0, Animal: 1, Human: 2.\n");
                 scanf("%d",&number_rooms);
                 printf("Number of Rooms (1 < number of rooms < 100)\n");
                 pointer_rooms = (room_type *)malloc(sizeof(room_type)*number_rooms);
@@ -125,6 +125,7 @@ int main()
 				} else if (strcmp(command, "help") == 0) {
 					help();
 				}
+				free(command);
                 if(respect<1 || respect>80)
                     currentState=gameOverState;
                 break;
@@ -203,6 +204,7 @@ creature_type * getPlayer(char *action, int number_creatures){
             }
         }
         sscanf(c, "%d", &id_creature);
+		free(c);
         return findCreatureById(id_creature, number_creatures);
     } else {
         return getPC(number_creatures);
