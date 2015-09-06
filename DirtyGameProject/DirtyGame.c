@@ -32,8 +32,8 @@ char * getCommand(char * action);
 creature_type * getPlayer(char *action, int number_creatures);
 room_type * getPlayerRoom(creature_type *creature, int number_rooms);
 void look(room_type *room, creature_type *player);
-void clean(room_type *room, creature_type *player);
-void dirty(room_type *room, creature_type *player);
+void clean(room_type *room, creature_type *player, int number_rooms);
+void dirty(room_type *room, creature_type *player, int number_rooms);
 int move(room_type *origin_room, room_type *destination_room, creature_type *player);
 int add_creature(creature_type *creature, room_type *room);
 creature_type * getPC(int number_creatures);
@@ -41,12 +41,14 @@ room_type * findRoomById(int id, int number_rooms);
 creature_type * findCreatureById(int id_creature, int number_creatures);
 void initCreaturesInRooms(int number_rooms);
 void creature_drill_hole(creature_type *creature, room_type *room);
-int reaction(int action, room_type *room, creature_type *player);
+void reaction(int action, room_type *room, creature_type *player, int number_rooms);
 int calculate_creature_reaction(int action, creature_type *creature);
 void creature_react(int respect_change, creature_type *creature);
 void check_creatures_reaction(int action, room_type *room, creature_type *player);
-void move_sad_creatures(room_type *room);
+void move_sad_creatures(room_type *room, int number_rooms);
 int creature_can_not_stay(int creature_type, int state);
+int move_creature_from(creature_type *creature,  room_type *room, int number_rooms);
+void help();
 
 int respect = 40;
 room_type *pointer_rooms;
@@ -62,14 +64,21 @@ int main()
     while(currentState != done){
         switch(currentState){
             case startState:
+                printf("\nFirst of all type the number of rooms, then type 5 integers to set the fields (dirt, north, south, east and west neighbor).\n");
+                printf("The dirty states are Clean: 0, Half Dirty: 1, Dirty: 2. Where the room does not have neighbor type '-1'.\n");
+                printf("Type the number of creatures, then type two integers to set the kind of creature and which room it is in.\n");
+                printf("Kind of creature PC: 0, Animal: 1, Human: 2.\n\n\n");
                 scanf("%d",&number_rooms);
+                printf("Number of Rooms (1 < number of rooms < 100)\n");
                 pointer_rooms = (room_type *)malloc(sizeof(room_type)*number_rooms);
                 //read state north south east west for each room
                 int i;
                 for(i=0; i < number_rooms; i++) {
 						pointer_rooms[i].id = i;
+						printf("Dirt State, North Neighbor, South Neighbor, East Neighbor, West Neighbor - Room[%d]\n", i);
                         scanf("%d %d %d %d %d", &pointer_rooms[i].state, &pointer_rooms[i].north, &pointer_rooms[i].south, &pointer_rooms[i].east, &pointer_rooms[i].west);
                 }
+                printf("Number of Creatures (1 < number of creatures < 100)\n");
                 scanf("%d",&number_creatures);
                 //read creature type and location
 				pointer_creatures = (creature_type *)malloc(sizeof(creature_type)*number_creatures);
@@ -78,10 +87,11 @@ int main()
                 for (i = 0; i < number_creatures; i++){
 					pointer_creatures[i].id = i;
 					pointer_creatures[i].deleted = 0;
+                    printf("Type of Creature and Location - Creature[%d]\n", i);
                     scanf("%d %d", &pointer_creatures[i].type, &pointer_creatures[i].room);
 					add_creature(&pointer_creatures[i], &pointer_rooms[pointer_creatures[i].room]);
                 }
-                printf("The Game Started \n");
+                printf("The Game Started - If you have any doubt use help command\n");
                 currentState = mainState;
                 break;
             case mainState:
@@ -97,21 +107,23 @@ int main()
                 if (strcmp(command, "look") == 0){
                     look(player_room, player);
                 } else if (strcmp(command, "clean") == 0){
-                    clean(player_room, player);
+                    clean(player_room, player, number_rooms);
                 } else if (strcmp(command, "dirty") == 0){
-                    dirty(player_room, player);
+                    dirty(player_room, player, number_rooms);
                 } else if (strcmp(command, "north") == 0){
-                    move(findRoomById(player_room->north, number_rooms), player_room, player);
+                    move(player_room, findRoomById(player_room->north, number_rooms), player);
                 } else if (strcmp(command, "south") == 0){
-                    move(findRoomById(player_room->south, number_rooms), player_room, player);
+                    move(player_room, findRoomById(player_room->south, number_rooms), player);
                 } else if (strcmp(command, "east") == 0){
-                    move(findRoomById(player_room->east, number_rooms), player_room, player);
+                    move(player_room, findRoomById(player_room->east, number_rooms), player);
                 } else if (strcmp(command, "west") == 0){
-                    move(findRoomById(player_room->west, number_rooms), player_room, player);
+                    move(player_room, findRoomById(player_room->west, number_rooms), player);
                 } else if (strcmp(command, "exit") == 0){
                     currentState=exitState;
                 } else if (strcmp(command, "unit-tests") == 0) {
 					//TODO unitTests();
+				} else if (strcmp(command, "help") == 0) {
+					help();
 				}
                 if(respect<1 || respect>80)
                     currentState=gameOverState;
@@ -122,10 +134,12 @@ int main()
                 } else {
                     printf("Congratulations, you are praised! \n");
                 }
-                currentState=done;
+                currentState=exitState;
                 break;
             case exitState:
-                printf("DO STUFF BEFORE CLOSE GAME! \n");
+				free(pointer_rooms);
+				free(pointer_creatures);
+				free(deleted_creature);
                 currentState=done;
                 break;
             case done:
@@ -261,10 +275,10 @@ void look(room_type *room, creature_type *player){
                 printf("human %d \n",room->creatures[i]->id);
             }
         } else {
-            break;
+            continue;
         }
 	}
-};
+}
 
 void initCreaturesInRooms(int number_rooms){
     int i, j;
@@ -284,22 +298,26 @@ int add_creature(creature_type *creature, room_type *room){
     int i, found_space = 0;
     for(i=0; i < 10; i++){
         if(room->creatures[i]->deleted){
-            free(room->creatures[i]);
             room->creatures[i] = creature;
             found_space = 1;
+            creature->room = room->id;
             break;
         }
     }
     return found_space;
 };
 
-void remove_creature(creature_type *creature, room_type *room){
+int remove_creature(creature_type *creature, room_type *room){
     int i;
+    int found_creature = 0;
     for(i=0; i < 10; i++){
         if(room->creatures[i]==creature){
+           room->creatures[i]->room=-1;
            room->creatures[i] = deleted_creature;
+           found_creature = 1;
         }
     }
+    return found_creature;
 };
 
 int change_room_state(int action, room_type *room){
@@ -314,31 +332,30 @@ int change_room_state(int action, room_type *room){
     return 1;
 }
 
-void clean(room_type *room, creature_type *player){
+void clean(room_type *room, creature_type *player, int number_rooms){
     if(change_room_state(-1, room)){
-        reaction(-1, room, player);
+        reaction(-1, room, player,number_rooms);
     }
 };
 
-void dirty(room_type *room, creature_type *player){
+void dirty(room_type *room, creature_type *player, int number_rooms){
     if(change_room_state(+1, room)){
-        reaction(+1, room, player);
+        reaction(+1, room, player,number_rooms);
     }
 };
 
-int reaction(int action, room_type *room, creature_type *player){
+void reaction(int action, room_type *room, creature_type *player, int number_rooms){
     check_creatures_reaction(action, room, player);
-    move_sad_creatures(room);
-
+    move_sad_creatures(room,number_rooms);
 }
 
-void move_sad_creatures(room_type *room){
+void move_sad_creatures(room_type *room, int number_rooms){
     int i;
     for(i=0; i < 10; i++){
         if(!room->creatures[i]->deleted && room->creatures[i]->type != 0){
-            if(creature_can_not_stay(room->creatures[i]->type, room->state){
-                  if(!move_creature_from(room->creatures[i],room){
-                      creature_drill_hole(room->creatures[i],room);
+            if(creature_can_not_stay(room->creatures[i]->type, room->state)){
+                  if(!move_creature_from(room->creatures[i],room,number_rooms)){
+						creature_drill_hole(room->creatures[i],room);
                   }
              }
         }
@@ -346,14 +363,54 @@ void move_sad_creatures(room_type *room){
 }
 
 int creature_can_not_stay(int type, int state){
-    if((type == 1 && state == 2) || (type == 2 && state == 0)){ 
+    if((type == 1 && state == 2) || (type == 2 && state == 0)){
         return 1;
     }
     return 0;
 }
 
-int move_creature_from(creature_type *creature,  room_type *room){
-
+int move_creature_from(creature_type *creature,  room_type *room, int number_rooms){
+    int north=0, south=0, east=0, west=0, moved=0;
+    int random;
+    char * direction;
+    while(!(north && south && east && west) && !moved){
+        direction = "";
+        random = rand() % 4;
+        switch(random){
+            case 0:
+                if(!north){
+                    north=1;
+                    moved = move(room, findRoomById(room->north, number_rooms), creature);
+                    direction = "north";
+                }
+                break;
+            case 1:
+                if(!south){
+                    south=1;
+                    moved = move(room, findRoomById(room->south, number_rooms), creature);
+                    direction = "south";
+                }
+                break;
+            case 2:
+                if(!east){
+                    east=1;
+                    moved = move(room, findRoomById(room->east, number_rooms), creature);
+                    direction = "east";
+                }
+                break;
+            case 3:
+                if(!west){
+                    west=1;
+                    moved = move(room, findRoomById(room->west, number_rooms), creature);
+                    direction = "west";
+                }
+                break;
+        }
+    }
+    if(moved){
+        printf("%d leaves towards the %s. \n",creature->id,direction);
+    }
+    return moved;
 }
 
 void check_creatures_reaction(int action, room_type *room, creature_type *player){
@@ -369,7 +426,7 @@ void check_creatures_reaction(int action, room_type *room, creature_type *player
 }
 
 void creature_react(int respect_change, creature_type *creature){
-    //npc smile and grumble. Animals can growl and lickFace.
+    //npc smile and grumble. Animals can growl and lickFace.
     respect=respect+respect_change;
     if(creature->type==1){
         if(respect_change>0){
@@ -410,9 +467,50 @@ int calculate_creature_reaction(int action, creature_type *creature){
 
 void creature_drill_hole(creature_type *creature, room_type *room){
     creature->deleted = 1;
-    //TODO add PC penalty
+    int i;
+    for(i=0; i < 10; i++){
+        if(!room->creatures[i]->deleted
+           && room->creatures[i]->type != 0
+           && !(room->creatures[i] == creature)){
+            respect=respect-1;
+        }
+    }
+    printf("%d had to drill a hole, all creatures dislike you. Your respect now is %d",creature->id,respect);
 }
 
 int move(room_type *origin_room, room_type *destination_room, creature_type *player){
-    printf("funcionou \n");
+    if(origin_room == NULL || destination_room == NULL){
+        return 0;
+    }
+    int count = 0, i;
+    for(i=0; i < 10; i++){
+        if(!destination_room->creatures[i]->deleted){
+            count++;
+        }
+    }
+    if(count<10){
+        remove_creature(player,origin_room);
+        add_creature(player, destination_room);
+        if(player->type==1){
+            change_room_state(-1,destination_room);
+        } else if (player->type==2){
+            change_room_state(+1,destination_room);
+        }
+        return 1;
+    } else {
+        printf("Room %d is full!",destination_room->id);
+        return 0;
+    }
+}
+
+void help(){
+    printf("\n");
+    printf("There are 7 commands to play this game, they are look, clean, dirty, north, south, east, west.\n");
+    printf("look is used to look around the room, so you or the other creatures can know how the room is or who is in the room.\n");
+    printf("clean is used to change the state of room, if it is dirty it will become half dirty, if it is half dirty it will become clean, if it is clean it will still be clean.\n");
+    printf("dirty is used to change the state of room, if it is clean it will become half dirty, if it is half dirty it will become dirty, if it is dirty it will still be dirty.\n");
+    printf("north, south, east and west are commands used to move to other room, north moves to north neighbor and so on.\n");
+    printf("All the commands can be performed by any creature in the game, to perform the commands as PC, you just need to type the command. ( look )\n");
+    printf("To perform as npc or animal, you need to type the number of creature, colon punctuation and then the command. ( 3:look )\n");
+    printf("This game has no Error Handling, please be careful!\n");
 }
