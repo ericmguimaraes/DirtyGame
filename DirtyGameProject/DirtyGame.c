@@ -69,7 +69,7 @@ int main()
                 //read state north south east west for each room
                 int i;
                 for(i=0; i < number_rooms; i++) {
-			pointer_rooms[i].id = i;
+				pointer_rooms[i].id = i;
                         scanf("%d %d %d %d %d", &pointer_rooms[i].state, &pointer_rooms[i].north, &pointer_rooms[i].south, &pointer_rooms[i].east, &pointer_rooms[i].west);
                 }
                 scanf("%d",&number_creatures);
@@ -103,21 +103,24 @@ int main()
                 } else if (strcmp(command, "dirty") == 0){
                     dirty(player_room, player, number_rooms);
                 } else if (strcmp(command, "north") == 0){
-                    move(player_room, findRoomById(player_room->north, number_rooms), player);
+                    if(!move(player_room, findRoomById(player_room->north, number_rooms), player))
+                       printf("Sorry, couldn't move north \n");
                 } else if (strcmp(command, "south") == 0){
-                    move(player_room, findRoomById(player_room->south, number_rooms), player);
+                    if(!move(player_room, findRoomById(player_room->south, number_rooms), player))
+                        printf("Sorry, couldn't move south \n");
                 } else if (strcmp(command, "east") == 0){
-                    move(player_room, findRoomById(player_room->east, number_rooms), player);
+                    if(!move(player_room, findRoomById(player_room->east, number_rooms), player))
+                        printf("Sorry, couldn't move east \n");
                 } else if (strcmp(command, "west") == 0){
-                    move(player_room, findRoomById(player_room->west, number_rooms), player);
+                    if(!move(player_room, findRoomById(player_room->west, number_rooms), player))
+                        printf("Sorry, couldn't move west \n");
                 } else if (strcmp(command, "exit") == 0){
                     currentState=exitState;
                 } else if (strcmp(command, "unit-tests") == 0) {
-			//TODO unitTests();
-		} else if (strcmp(command, "help") == 0) {
-			help();
-		}
-		free(command);
+                        //TODO unitTests();
+                } else if (strcmp(command, "help") == 0) {
+                    help();
+                }
                 if(respect<1 || respect>80)
                     currentState=gameOverState;
                 break;
