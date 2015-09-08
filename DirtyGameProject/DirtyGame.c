@@ -147,19 +147,10 @@ int main()
 
 char * getCommand(char * action){
     char * result;
-    if (isdigit(action[0])) {
-        int i;
-        for(i=0;i<strlen(action);i++){
-            if(isalpha(action[i])){
-                result = malloc(sizeof(char) * (strlen(action)-i+1));
-                strncpy(result, action+i, strlen(action)-i);
-                result[(strlen(action)-i)] = 0;
-                break;
-            }
-        }
-    } else {
-        result=action;
-    }
+	const char s[2] = ":";
+	result = strtok(action, s);
+	if (isdigit(action[0]))
+        result = strtok(NULL, s);
     return result;
 };
 
@@ -187,16 +178,9 @@ creature_type * getPlayer(char *action, int number_creatures){
     if (isdigit(action[0])) {
         int i, id_creature;
         char * c;
-        for(i=0;i<strlen(action);i++){
-            if(!isdigit(action[i])){
-                c = malloc(sizeof(char) * (i+1));
-                strncpy(c, action, i+1);
-                c[(i+1)] = 0;
-                break;
-            }
-        }
-        sscanf(c, "%d", &id_creature);
-		free(c);
+		const char s[2] = ":";
+		c = strtok(action, s);
+		sscanf(c, "%d", &id_creature);
         return findCreatureById(id_creature, number_creatures);
     } else {
         return getPC(number_creatures);
